@@ -1075,3 +1075,40 @@ document.addEventListener("DOMContentLoaded", () => {
         window.checkLicense();
     }, 500);
 });
+// ==========================================
+// 🤖 وظائف واجهة مساعد الذكاء الاصطناعي
+// ==========================================
+
+window.toggleAiChat = () => {
+    const panel = document.getElementById('aiChatPanel');
+    panel.classList.toggle('active');
+    if (panel.classList.contains('active')) {
+        document.getElementById('aiInput').focus();
+    }
+};
+
+window.sendAiMsg = () => {
+    const input = document.getElementById('aiInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    const chatBody = document.getElementById('aiChatBody');
+    
+    // إضافة رسالة المستخدم
+    const userMsg = document.createElement('div');
+    userMsg.className = 'ai-msg user';
+    userMsg.textContent = text;
+    chatBody.appendChild(userMsg);
+    
+    input.value = '';
+    chatBody.scrollTop = chatBody.scrollHeight;
+
+    // محاكاة تفكير المساعد (مؤقتاً حتى نربط الـ API لاحقاً)
+    setTimeout(() => {
+        const botMsg = document.createElement('div');
+        botMsg.className = 'ai-msg bot';
+        botMsg.innerHTML = "أنا أقوم بتحليل طلبك... ⏳<br><span style='font-size:10px; color:var(--muted);'>(سيتم ربط العقل المدبر لـ Gemini قريباً!)</span>";
+        chatBody.appendChild(botMsg);
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }, 600);
+};
