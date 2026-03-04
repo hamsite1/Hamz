@@ -114,3 +114,11 @@ tr.expiring-row{ background: rgba(245,158,11,.06); }
 .flex-row-receipt { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed #cbd5e1; flex-wrap: wrap; gap: 5px;}
 .flex-row-receipt span.label { color: #64748b; }
 .flex-row-receipt strong.val, .flex-row-receipt span.val { color: #0f172a; text-align: left; }
+
+/* تنسيقات شاشة التفعيل */
+.activation-overlay {
+  position: fixed; inset: 0; background: rgba(7, 10, 18, 0.98); z-index: 999999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(15px);
+}
+.activation-box {
+  background: rgba(10, 14, 26, 0.95); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 24px; padding: 40px 30px; width: min(400px, 90%); text-align: center; box-shadow: 0 30px 90px rgba(0,0,0,0.8);
+}
