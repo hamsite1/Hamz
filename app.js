@@ -930,3 +930,83 @@ window.generatePortalLink = () => {
         showToast("حدث خطأ أثناء التشفير", "err");
     }
 };
+// ==========================================
+// 🔐 نظام تفعيل النسخة (License Key)
+// ==========================================
+const LICENSE_LOCAL_KEY = "dashboard_license_key_v1";
+
+window.checkLicense = () => {
+    const savedKey = localStorage.getItem(LICENSE_LOCAL_KEY);
+    // إذا لم يكن هناك مفتاح محفوظ، نظهر شاشة القفل ونمنع الدخول
+    if (!savedKey) {
+        document.getElementById("activationOverlay").style.display = "flex";
+        return false;
+    }
+    // إذا كان مفعل مسبقاً، نخفي الشاشة
+    document.getElementById("activationOverlay").style.display = "none";
+    return true;
+};
+
+window.verifyLicense = async () => {
+    const keyInput = document.getElementById("licenseKeyInput").value.trim().toUpperCase();
+    const btn = document.getElementById("btnActivate");
+    const errDiv = document.getElementById("activationError");
+    
+    if(!keyInput) return;
+    
+    btn.textContent = "جاري التحقق... ⏳";
+    btn.disabled = true;
+    errDiv.style.display = "none";
+
+    try {
+        // الاتصال بقاعدة البيانات للبحث عن المفتاح
+        const snap = await db.ref("licenses/" + keyInput).once("value");
+        
+        if (snap.exists()) {
+            const licenseData = snap.val();
+            
+            // التحقق مما إذا كان المفتاح فعّال وغير مستخدم
+            if (licenseData.active === true && (!licenseData.usedBy || licenseData.usedBy === "")) {
+                
+                // تحديث المفتاح في قاعدة البيانات ليصبح "مستخدماً"
+                await db.ref("licenses/" + keyInput).update({
+                    usedBy: "activated_client",
+                    activationDate: new Date().toISOString()
+                });
+                
+                // حفظ المفتاح محلياً في جهاز العميل
+                localStorage.setItem(LICENSE_LOCAL_KEY, keyInput);
+                
+                document.getElementById("activationOverlay").style.display = "none";
+                showToast("تم تفعيل النسخة بنجاح! 🎉", "ok");
+                
+                // إعادة تحميل البيانات بعد التفعيل
+                if(currentUser) window.loadData();
+                
+            } else if (licenseData.usedBy !== "") {
+               errDiv.textContent = "❌ هذا المفتاح تم استخدامه مسبقاً!";
+               errDiv.style.display = "block";
+            } else {
+                errDiv.textContent = "❌ المفتاح غير مفعل، راجع الإدارة.";
+                errDiv.style.display = "block";
+            }
+        } else {
+            errDiv.textContent = "❌ مفتاح التفعيل غير صحيح!";
+            errDiv.style.display = "block";
+        }
+    } catch (error) {
+        errDiv.textContent = "❌ خطأ في الاتصال، تأكد من الإنترنت.";
+        errDiv.style.display = "block";
+    }
+    
+    btn.textContent = "تحقق وتفعيل 🚀";
+    btn.disabled = false;
+};
+
+// تفعيل التحقق فور تحميل الصفحة
+document.addEventListener("DOMContentLoaded", () => {
+    // ننتظر قليلاً حتى يتم تحميل Firebase
+    setTimeout(() => {
+        window.checkLicense();
+    }, 500);
+});
