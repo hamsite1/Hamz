@@ -17,6 +17,17 @@
 </head>
 
 <body>
+<div id="activationOverlay" class="activation-overlay" style="display: none;">
+  <div class="activation-box">
+    <div class="auth-icon-wrap" style="margin: 0 auto 15px; border-color: #10b981; background: rgba(16,185,129,0.1); color: #10b981;">🔑</div>
+    <h2 style="margin-top:0; color:var(--text);">تفعيل النسخة</h2>
+    <p style="color:var(--muted); font-size:13px; line-height:1.6; margin-bottom:20px;">هذه النسخة غير مفعلة. يرجى إدخال مفتاح الترخيص (License Key) الخاص بك للوصول إلى اللوحة.</p>
+    <input type="text" id="licenseKeyInput" placeholder="مثال: ABCD-1234-WXYZ" style="width:100%; padding:15px; border-radius:12px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.5); color:#fff; text-align:center; font-family:monospace; font-size:16px; margin-bottom:15px; outline:none; text-transform: uppercase;" dir="ltr">
+    <button class="btn primary" id="btnActivate" onclick="window.verifyLicense()" style="width:100%; padding:14px; font-size:16px; border-radius:12px; background: #10b981; border-color: #059669; box-shadow: 0 8px 25px rgba(16,185,129,0.3);">تحقق وتفعيل 🚀</button>
+    <div id="activationError" style="color:#ef4444; font-size:13px; margin-top:10px; display:none; font-weight:bold;">مفتاح غير صحيح أو مستخدم مسبقاً!</div>
+  </div>
+</div>
+
 <div class="container">
   <div class="header">
     <h1>🧾 لوحة تسيير الاشتراكات <span class="version-badge">v12.9.18</span></h1>
