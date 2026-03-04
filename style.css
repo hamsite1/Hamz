@@ -126,3 +126,59 @@ tr.expiring-row{ background: rgba(245,158,11,.06); }
 .license-chip { border-color: rgba(16, 185, 129, 0.45); background: rgba(16, 185, 129, 0.1); color: #10b981; margin-inline-start: auto; margin-inline-end: 8px;}
 .license-chip.warn { border-color: rgba(245, 158, 11, 0.45); background: rgba(245, 158, 11, 0.1); color: #f59e0b; animation: pulse 2s infinite; }
 @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
+/* ========================================== */
+/* 🤖 تصميم المساعد الذكي (عصري وديناميكي) */
+/* ========================================== */
+
+/* الزر العائم */
+.ai-fab {
+  position: fixed; bottom: 30px; left: 30px; width: 60px; height: 60px;
+  border-radius: 50%; border: none; cursor: pointer; outline: none;
+  background: linear-gradient(135deg, #7c5cff, #a855f7, #ec4899);
+  background-size: 200% 200%;
+  box-shadow: 0 10px 30px rgba(168, 85, 247, 0.4), inset 0 2px 5px rgba(255,255,255,0.4);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9998;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: floatAi 4s ease-in-out infinite, gradientShift 5s ease infinite;
+}
+.ai-fab:hover { transform: scale(1.1) translateY(-5px); box-shadow: 0 15px 40px rgba(236, 72, 153, 0.5); }
+.ai-fab:active { transform: scale(0.95); }
+
+/* الأيقونة وتأثير النبض */
+.ai-svg { width: 30px; height: 30px; color: white; animation: pulseGlow 2s infinite; }
+.ai-fab-glow { position: absolute; inset: -5px; border-radius: 50%; background: inherit; filter: blur(10px); opacity: 0.5; z-index: -1; animation: breathe 3s ease-in-out infinite; }
+
+/* نافذة المحادثة (Glassmorphism) */
+.ai-chat-panel {
+  position: fixed; bottom: 105px; left: 30px; width: min(360px, calc(100vw - 60px)); height: 500px;
+  background: rgba(15, 20, 35, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 24px;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.1);
+  display: flex; flex-direction: column; overflow: hidden; z-index: 9999;
+  transform-origin: bottom left; transform: scale(0.8) translateY(20px); opacity: 0; pointer-events: none;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.ai-chat-panel.active { transform: scale(1) translateY(0); opacity: 1; pointer-events: auto; }
+
+/* أجزاء النافذة */
+.ai-chat-header { padding: 16px 20px; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+.ai-header-icon { width: 36px; height: 36px; border-radius: 12px; background: linear-gradient(135deg, #7c5cff, #ec4899); display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3); }
+.ai-chat-body { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
+.ai-chat-footer { padding: 15px; background: rgba(0,0,0,0.4); border-top: 1px solid rgba(255,255,255,0.05); display: flex; gap: 10px; }
+.ai-chat-footer input { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px 16px; border-radius: 16px; color: white; outline: none; transition: all 0.3s; font-family: inherit;}
+.ai-chat-footer input:focus { border-color: #a855f7; background: rgba(0,0,0,0.5); box-shadow: 0 0 0 3px rgba(168,85,247,0.15); }
+.ai-send-btn { background: linear-gradient(135deg, #7c5cff, #a855f7); color: white; border: none; width: 45px; height: 45px; border-radius: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; box-shadow: 0 4px 15px rgba(124,92,255,0.3); }
+.ai-send-btn:active { transform: scale(0.9); }
+
+/* رسائل المحادثة */
+.ai-msg { padding: 12px 16px; border-radius: 16px; font-size: 13px; line-height: 1.6; max-width: 85%; animation: slideIn 0.3s ease; }
+.ai-msg.bot { background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); color: #eaf0ff; border-bottom-right-radius: 4px; align-self: flex-start; }
+.ai-msg.user { background: #2563eb; color: white; border-bottom-left-radius: 4px; align-self: flex-end; box-shadow: 0 4px 15px rgba(37,99,235,0.3); }
+
+/* حركات الأنميشن */
+@keyframes floatAi { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+@keyframes pulseGlow { 0%, 100% { filter: drop-shadow(0 0 2px rgba(255,255,255,0.4)); transform: scale(1); } 50% { filter: drop-shadow(0 0 8px rgba(255,255,255,0.9)); transform: scale(1.1); } }
+@keyframes breathe { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 0.8; } }
+@keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
