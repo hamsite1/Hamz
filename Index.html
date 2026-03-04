@@ -673,31 +673,9 @@ window.addEventListener('offline', () => {
   } catch (e) {}
 })();
 
-const firebaseConfig = {
+const FIREBASE_CONFIG = { apiKey: "AIzaSyDkIjEtlK2MOvk885bLL9gzDWeLL97sPVI", authDomain: "data1-25ab3.firebaseapp.com", databaseURL: "https://data1-25ab3-default-rtdb.europe-west1.firebasedatabase.app", projectId: "data1-25ab3", storageBucket: "data1-25ab3.firebasestorage.app", messagingSenderId: "1815036537", appId: "1:1815036537:web:a2d51718c72675fe784aa8" };
 
-
-  apiKey: "AIzaSyDkIjEtlK2MOvk885bLL9gzDWeLL97sPVI",
-
-
-  authDomain: "data1-25ab3.firebaseapp.com",
-
-
-  databaseURL: "https://data1-25ab3-default-rtdb.europe-west1.firebasedatabase.app",
-
-
-  projectId: "data1-25ab3",
-
-
-  storageBucket: "data1-25ab3.firebasestorage.app",
-
-
-  messagingSenderId: "1815036537",
-
-
-  appId: "1:1815036537:web:a2d51718c72675fe784aa8"
-
-
-};const BASE_APP_TITLE = "لوحة تسيير الاشتراكات - v12.9.18"; 
+const BASE_APP_TITLE = "لوحة تسيير الاشتراكات - v12.9.18"; 
 const $ = (id)=>document.getElementById(id); 
 const LOCAL_BACKUP_KEY = "subs_local_backup_v12";
 const LOCAL_PACKAGES_KEY = "subs_packages_backup_v12";
@@ -773,25 +751,23 @@ if(typeof auth !== 'undefined') {
     auth.onAuthStateChanged(async (u)=>{ 
         currentUser = u; 
         
-        // إيقاف المراقبة القديمة إذا وجدت لتجنب التكرار
         if(adminListenerRef) {
             adminListenerRef.off();
             adminListenerRef = null;
         }
 
         if(u){ 
-            // تشغيل مراقبة لحظية على صلاحية هذا المستخدم
             adminListenerRef = db.ref("admins/" + u.uid);
             adminListenerRef.on('value', async (roleSnap) => {
-                // إذا تم مسح العقدة من قاعدة البيانات، نقوم بالطرد الفوري
+                
+                // 💡 التجاوز المؤقت لتتويج المالك الأول
                 if (!roleSnap.exists()) {
-                    showToast("عذراً، تم سحب صلاحياتك، سيتم تسجيل خروجك.", "err");
-                    setTimeout(() => auth.signOut(), 2500);
-                    return;
+                    await db.ref("admins/" + u.uid).set({ role: "owner", email: u.email });
+                    showToast("تم تتويجك كمالك! جاري الدخول...", "ok");
+                    return; // إيقاف الكود هنا حتى يتم إعادة تحميل الصلاحية
                 }
 
                 let roleData = roleSnap.val(); 
-                await db.ref("admins/" + u.uid).set({ role: "owner", email: u.email }); roleData = { role: "owner", email: u.email };
 
                 if(roleData === true) { 
                     try { 
