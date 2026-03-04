@@ -932,7 +932,7 @@ window.generatePortalLink = () => {
 };
 
 // ==========================================
-// 🔐 نظام تفعيل النسخة (License Key) - الإصدار المتقدم
+// 🔐 نظام تفعيل النسخة (License Key) - مع العداد الذكي
 // ==========================================
 const LICENSE_LOCAL_KEY = "dashboard_license_key_v1";
 const LICENSE_EXPIRE_KEY = "dashboard_license_expire_v1";
@@ -943,7 +943,6 @@ window.checkLicense = async () => {
     const overlay = document.getElementById("activationOverlay");
     const errDiv = document.getElementById("activationError");
 
-    // 1. إذا لم يكن هناك مفتاح أو تاريخ انتهاء محفوظ
     if (!savedKey || !expireDate) {
         overlay.style.display = "flex";
         return false;
@@ -952,7 +951,7 @@ window.checkLicense = async () => {
     const now = new Date();
     const expiry = new Date(expireDate);
 
-    // 2. التحقق مما إذا كانت المدة قد انتهت محلياً
+    // التحقق من انتهاء المدة
     if (now > expiry) {
         localStorage.removeItem(LICENSE_LOCAL_KEY);
         localStorage.removeItem(LICENSE_EXPIRE_KEY);
@@ -962,17 +961,33 @@ window.checkLicense = async () => {
         return false;
     }
 
-    // 3. فحص أمني صامت في الخلفية مع Firebase (لمنع التلاعب بالتاريخ)
+    // ⏳ حساب الأيام المتبقية وتحديث العداد الأنيق
+    const diffTime = expiry - now;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const lChip = document.getElementById("licenseChip");
+    const lVal = document.getElementById("licenseVal");
+    
+    if (lChip && lVal) {
+        lChip.style.display = "inline-flex";
+        if (diffDays > 7) {
+            lChip.className = "statChip license-chip";
+            lVal.textContent = `باقي ${diffDays} يوم`;
+        } else {
+            lChip.className = "statChip license-chip warn";
+            lVal.textContent = `ينتهي قريباً: ${diffDays} يوم`;
+        }
+    }
+
+    // فحص أمني صامت في الخلفية
     if (navigator.onLine && typeof db !== 'undefined') {
         try {
             const snap = await db.ref("licenses/" + savedKey).once("value");
             if (snap.exists()) {
                 const data = snap.val();
                 if (!data.active || new Date() > new Date(data.expireDate)) {
-                    // المفتاح تم إيقافه من الإدارة أو انتهى فعلياً في السيرفر
                     localStorage.removeItem(LICENSE_LOCAL_KEY);
                     localStorage.removeItem(LICENSE_EXPIRE_KEY);
-                    location.reload(); // إعادة تحميل الصفحة لقفلها
+                    location.reload(); 
                 }
             }
         } catch(e) {}
@@ -999,33 +1014,29 @@ window.verifyLicense = async () => {
         if (snap.exists()) {
             const licenseData = snap.val();
             
-            // الحالة الأولى: المفتاح جديد تماماً ولم يستخدم بعد
             if (licenseData.active === true && (!licenseData.usedBy || licenseData.usedBy === "")) {
                 
-                // حساب تاريخ الانتهاء (الافتراضي 30 يوم إذا لم تحدد أنت غير ذلك)
                 const durationDays = parseInt(licenseData.durationDays) || 30;
                 const expireDateObj = new Date();
                 expireDateObj.setDate(expireDateObj.getDate() + durationDays);
                 const expireDateStr = expireDateObj.toISOString();
 
-                // تحديث قاعدة البيانات
                 await db.ref("licenses/" + keyInput).update({
                     usedBy: "activated_client",
                     activationDate: new Date().toISOString(),
                     expireDate: expireDateStr
                 });
                 
-                // الحفظ في المتصفح
                 localStorage.setItem(LICENSE_LOCAL_KEY, keyInput);
                 localStorage.setItem(LICENSE_EXPIRE_KEY, expireDateStr);
                 
                 document.getElementById("activationOverlay").style.display = "none";
+                window.checkLicense(); // تحديث العداد فوراً بعد التفعيل
                 showToast(`تم التفعيل! صالح لمدة ${durationDays} يوم 🎉`, "ok");
                 
                 if(currentUser) window.loadData();
                 
             } 
-            // الحالة الثانية: المفتاح مستخدم مسبقاً (ربما العميل قام بمسح المتصفح ويريد الدخول مجدداً)
             else if (licenseData.usedBy !== "" && licenseData.expireDate) {
                 const now = new Date();
                 const expiry = new Date(licenseData.expireDate);
@@ -1034,10 +1045,10 @@ window.verifyLicense = async () => {
                      errDiv.textContent = "❌ انتهت صلاحية هذا المفتاح! يرجى التجديد.";
                      errDiv.style.display = "block";
                 } else {
-                     // السماح بالدخول واستعادة الجلسة
                      localStorage.setItem(LICENSE_LOCAL_KEY, keyInput);
                      localStorage.setItem(LICENSE_EXPIRE_KEY, licenseData.expireDate);
                      document.getElementById("activationOverlay").style.display = "none";
+                     window.checkLicense(); // تحديث العداد
                      showToast("تم استعادة التفعيل بنجاح ✅", "ok");
                      if(currentUser) window.loadData();
                 }
@@ -1059,7 +1070,6 @@ window.verifyLicense = async () => {
     btn.disabled = false;
 };
 
-// تفعيل التحقق فور تحميل الصفحة
 document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => {
         window.checkLicense();
