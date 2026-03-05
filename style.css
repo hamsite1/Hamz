@@ -182,3 +182,8 @@ tr.expiring-row{ background: rgba(245,158,11,.06); }
 @keyframes pulseGlow { 0%, 100% { filter: drop-shadow(0 0 2px rgba(255,255,255,0.4)); transform: scale(1); } 50% { filter: drop-shadow(0 0 8px rgba(255,255,255,0.9)); transform: scale(1.1); } }
 @keyframes breathe { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 0.8; } }
 @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+/* تنسيقات زر الميكروفون الصوتي */
+.ai-mic-btn { background: transparent; border: none; font-size: 20px; cursor: pointer; color: var(--muted); transition: all 0.3s; padding: 0 10px; display: flex; align-items: center; justify-content: center; }
+.ai-mic-btn:hover { color: #a855f7; transform: scale(1.1); }
+.ai-mic-btn.recording { color: #ef4444; animation: micPulse 1s infinite; }
+@keyframes micPulse { 0% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(239,68,68,0.5)); } 50% { transform: scale(1.2); filter: drop-shadow(0 0 8px rgba(239,68,68,1)); } 100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(239,68,68,0.5)); } }
