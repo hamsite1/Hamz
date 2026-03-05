@@ -1087,14 +1087,17 @@ window.toggleAiChat = () => {
     }
 };
 
-window.sendAiMsg = () => {
+// ضع المفتاح الذي نسخته من جوجل بين علامتي التنصيص هنا 👇
+const GEMINI_API_KEY = "AIzaSyDuNNEYCUlCP_QuUA5okeJegm5w60QviK4";
+
+window.sendAiMsg = async () => {
     const input = document.getElementById('aiInput');
     const text = input.value.trim();
     if (!text) return;
 
     const chatBody = document.getElementById('aiChatBody');
     
-    // إضافة رسالة المستخدم
+    // 1. عرض رسالة المستخدم
     const userMsg = document.createElement('div');
     userMsg.className = 'ai-msg user';
     userMsg.textContent = text;
@@ -1103,12 +1106,65 @@ window.sendAiMsg = () => {
     input.value = '';
     chatBody.scrollTop = chatBody.scrollHeight;
 
-    // محاكاة تفكير المساعد (مؤقتاً حتى نربط الـ API لاحقاً)
-    setTimeout(() => {
-        const botMsg = document.createElement('div');
-        botMsg.className = 'ai-msg bot';
-        botMsg.innerHTML = "أنا أقوم بتحليل طلبك... ⏳<br><span style='font-size:10px; color:var(--muted);'>(سيتم ربط العقل المدبر لـ Gemini قريباً!)</span>";
-        chatBody.appendChild(botMsg);
-        chatBody.scrollTop = chatBody.scrollHeight;
-    }, 600);
+    // 2. عرض رسالة "جاري التفكير..."
+    const botMsg = document.createElement('div');
+    botMsg.className = 'ai-msg bot';
+    botMsg.innerHTML = "جاري التحليل والتفكير... ⏳✨";
+    chatBody.appendChild(botMsg);
+    chatBody.scrollTop = chatBody.scrollHeight;
+
+    // 3. تجهيز البيانات للذكاء الاصطناعي (نرسل ملخصاً آمناً للبيانات الحالية)
+    const safeDataSummary = data.map(d => ({
+        الاسم: d.name || "مجهول",
+        الخدمة: d.serviceType || "غير محدد",
+        السعر: d.price || 0,
+        المدفوع: d.paidAmount || 0,
+        الدين: (parseFloat(d.price) || 0) - (parseFloat(d.paidAmount) || 0),
+        الاشتراك: d.subType === 'sessions' ? `حصص (باقي ${d.sessionsLeft})` : `زمني (ينتهي ${d.end})`
+    }));
+
+    // الأوامر الصارمة التي نعطيها للمساعد ليفهم دوره
+    const systemPrompt = `
+    أنت مساعد ذكي احترافي مدمج داخل "لوحة تسيير الاشتراكات".
+    مهمتك هي مساعدة صاحب اللوحة في تحليل البيانات، حساب الديون، ومعرفة من انتهى اشتراكه، أو صياغة رسائل للعملاء.
+    هذه هي بيانات المشتركين الحالية في اللوحة (بصيغة JSON):
+    ${JSON.stringify(safeDataSummary)}
+    
+    تعليمات هامة:
+    - أجب باللغة العربية بأسلوب احترافي ومختصر قدر الإمكان.
+    - استخدم التنسيق (مثل النقاط العريضة) لتسهيل القراءة.
+    - إذا طُلب منك كتابة رسالة لعميل، اكتب الرسالة فقط لتكون جاهزة للنسخ.
+    
+    سؤال المدير هو: ${text}
+    `;
+
+    // 4. الاتصال بـ Google Gemini API
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: systemPrompt }] }]
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.candidates && result.candidates.length > 0) {
+            let aiText = result.candidates[0].content.parts[0].text;
+            
+            // تحويل التنسيق النصي إلى HTML ليظهر بشكل جميل (الخط العريض والأسطر الجديدة)
+            aiText = aiText.replace(/\*\*(.*?)\*\*/g, '<b style="color:var(--accent);">$1</b>');
+            aiText = aiText.replace(/\n/g, '<br>');
+            
+            botMsg.innerHTML = aiText;
+        } else {
+            botMsg.innerHTML = "عذراً، لم أتمكن من استيعاب الطلب. يرجى المحاولة بصيغة أخرى. ❌";
+        }
+    } catch (error) {
+        console.error(error);
+        botMsg.innerHTML = "❌ خطأ في الاتصال! تأكد من صحة مفتاح (API Key) ومن اتصالك بالإنترنت.";
+    }
+    
+    chatBody.scrollTop = chatBody.scrollHeight;
 };
