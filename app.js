@@ -1106,14 +1106,14 @@ window.sendAiMsg = async () => {
     input.value = '';
     chatBody.scrollTop = chatBody.scrollHeight;
 
-    // 2. عرض رسالة "جاري التفكير..."
+    // 2. عرض رسالة التفكير
     const botMsg = document.createElement('div');
     botMsg.className = 'ai-msg bot';
     botMsg.innerHTML = "جاري التحليل والتفكير... ⏳✨";
     chatBody.appendChild(botMsg);
     chatBody.scrollTop = chatBody.scrollHeight;
 
-    // 3. تجهيز البيانات للذكاء الاصطناعي (نرسل ملخصاً آمناً للبيانات الحالية)
+    // تجهيز البيانات
     const safeDataSummary = data.map(d => ({
         الاسم: d.name || "مجهول",
         الخدمة: d.serviceType || "غير محدد",
@@ -1123,7 +1123,6 @@ window.sendAiMsg = async () => {
         الاشتراك: d.subType === 'sessions' ? `حصص (باقي ${d.sessionsLeft})` : `زمني (ينتهي ${d.end})`
     }));
 
-    // الأوامر الصارمة التي نعطيها للمساعد ليفهم دوره
     const systemPrompt = `
     أنت مساعد ذكي احترافي مدمج داخل "لوحة تسيير الاشتراكات".
     مهمتك هي مساعدة صاحب اللوحة في تحليل البيانات، حساب الديون، ومعرفة من انتهى اشتراكه، أو صياغة رسائل للعملاء.
@@ -1131,16 +1130,16 @@ window.sendAiMsg = async () => {
     ${JSON.stringify(safeDataSummary)}
     
     تعليمات هامة:
-    - أجب باللغة العربية بأسلوب احترافي ومختصر قدر الإمكان.
-    - استخدم التنسيق (مثل النقاط العريضة) لتسهيل القراءة.
-    - إذا طُلب منك كتابة رسالة لعميل، اكتب الرسالة فقط لتكون جاهزة للنسخ.
+    - أجب باللغة العربية بأسلوب احترافي، محترم، ومختصر.
+    - استخدم التنسيق (النجمة المزدوجة للخط العريض) لتسهيل القراءة.
+    - إذا طُلب منك القيام بفعل (مثل إضافة عميل أو الحذف)، اعتذر بلباقة وأخبر المستخدم أنك حالياً مبرمج لتحليل البيانات فقط، ولكن سيتم تفعيل ميزة الأوامر التنفيذية قريباً.
     
     سؤال المدير هو: ${text}
     `;
 
-    // 4. الاتصال بـ Google Gemini API
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        // السحر هنا: قمنا بتغيير الموديل إلى gemini-pro المستقر جداً!
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1155,18 +1154,16 @@ window.sendAiMsg = async () => {
             return;
         }
 
-        // فحص إذا كان هناك إجابة فعلية
         if (result.candidates && result.candidates[0] && result.candidates[0].content) {
             let aiText = result.candidates[0].content.parts[0].text;
             aiText = aiText.replace(/\*\*(.*?)\*\*/g, '<b style="color:var(--accent);">$1</b>');
             aiText = aiText.replace(/\n/g, '<br>');
             botMsg.innerHTML = aiText;
         } else {
-            // السحر هنا 🪄: سنطبع رد جوجل الخام مباشرة على الشاشة لنعرف المشكلة!
-            botMsg.innerHTML = `⚠️ رد غير متوقع من جوجل:<br><code style="font-size:10px; color:#ef4444; direction:ltr; text-align:left; display:block; padding:10px; background:rgba(0,0,0,0.5); border-radius:8px; margin-top:5px; word-wrap:break-word;">${JSON.stringify(result)}</code>`;
+            botMsg.innerHTML = "عذراً، لم أتمكن من استيعاب الطلب. يرجى المحاولة بصيغة أخرى. ❌";
         }
     } catch (error) {
-        botMsg.innerHTML = `❌ خطأ في الكود: ${error.message}`;
+        botMsg.innerHTML = `❌ خطأ في الاتصال: ${error.message}`;
     }
     
     chatBody.scrollTop = chatBody.scrollHeight;
