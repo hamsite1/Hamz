@@ -1150,20 +1150,23 @@ window.sendAiMsg = async () => {
 
         const result = await response.json();
 
-        if (result.candidates && result.candidates.length > 0) {
+        if (result.error) {
+            botMsg.innerHTML = `❌ خطأ من السيرفر: ${result.error.message}`;
+            return;
+        }
+
+        // فحص إذا كان هناك إجابة فعلية
+        if (result.candidates && result.candidates[0] && result.candidates[0].content) {
             let aiText = result.candidates[0].content.parts[0].text;
-            
-            // تحويل التنسيق النصي إلى HTML ليظهر بشكل جميل (الخط العريض والأسطر الجديدة)
             aiText = aiText.replace(/\*\*(.*?)\*\*/g, '<b style="color:var(--accent);">$1</b>');
             aiText = aiText.replace(/\n/g, '<br>');
-            
             botMsg.innerHTML = aiText;
         } else {
-            botMsg.innerHTML = "عذراً، لم أتمكن من استيعاب الطلب. يرجى المحاولة بصيغة أخرى. ❌";
+            // السحر هنا 🪄: سنطبع رد جوجل الخام مباشرة على الشاشة لنعرف المشكلة!
+            botMsg.innerHTML = `⚠️ رد غير متوقع من جوجل:<br><code style="font-size:10px; color:#ef4444; direction:ltr; text-align:left; display:block; padding:10px; background:rgba(0,0,0,0.5); border-radius:8px; margin-top:5px; word-wrap:break-word;">${JSON.stringify(result)}</code>`;
         }
     } catch (error) {
-        console.error(error);
-        botMsg.innerHTML = "❌ خطأ في الاتصال! تأكد من صحة مفتاح (API Key) ومن اتصالك بالإنترنت.";
+        botMsg.innerHTML = `❌ خطأ في الكود: ${error.message}`;
     }
     
     chatBody.scrollTop = chatBody.scrollHeight;
